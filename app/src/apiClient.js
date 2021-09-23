@@ -1,5 +1,12 @@
 export const getTasks = () => _get("/api/tasks");
 
+// export const getUsers = () => _get("/api/users");
+
+export const getUsers = async () => {
+  const response = await fetch("/api/users");
+  return response.json();
+};
+
 export const addTask = (name) => _post("/api/tasks", { name });
 
 const _get = async (url) => (await fetch(url)).json();
