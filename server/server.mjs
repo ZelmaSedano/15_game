@@ -1,15 +1,31 @@
 import express from "express";
 import mime from "mime-types";
 
-import userRouter from "./userRouter.mjs";
-import taskRouter from "./taskRouter.mjs";
+import * as db from "./db.mjs";
 
 const app = express();
-app.use("/api/users", userRouter);
-app.use("/api/tasks", taskRouter);
+const port = process.env.PORT || 4000;
 
-// Do not comment out or delete this end point. The React development server
-// won't start until it pings this end point successfully.
+// endpoint for users
+const users = express.Router();
+// this has to be after users is defined as the route
+app.use("/api/users", users);
+
+// get users
+users.get("/", async (req, res) => {
+  const users = await db.getUsers();
+  res.json(users);
+});
+
+// for post method
+users.use(express.json()); // must be before post method
+
+// adding a new user
+users.post("/", async (req, res) => {
+  // 'hey database, do this'
+  res.status(201).json(await db.addUser(req.body));
+});
+
 app.get("/api/ping", (request, response) =>
   response.json({ response: "pong" }),
 );
@@ -29,7 +45,6 @@ if (process.env?.SERVE_REACT?.toLowerCase() === "true") {
   });
 }
 
-const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.info(`Example server listening at http://localhost:${port}`);
 });

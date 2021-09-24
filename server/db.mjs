@@ -3,17 +3,21 @@ import pgp from "pg-promise";
 
 const db = initDb();
 
-export const getTasks = () => db.any("SELECT * FROM tasks");
+// gets users
+export const getUsers = async () => await db.any("SELECT * FROM tictactoe");
 
-export const addTask = (name) =>
-  db.one("INSERT INTO tasks(name) VALUES(${name}) RETURNING *", { name });
+// Add Users to DB
+export const addUser = async ({ player_name, x_or_o }) =>
+  await db.any(
+    "INSERT INTO tictactoe(player_name, x_or_o, number_of_wins) VALUES($1, $2, $3)",
+    [player_name, x_or_o, 0],
+  );
 
-export const getUsers = () => db.any("SELECT * FROM tictactoe");
-
-export const addUser = ({ player_name }) =>
-  db.any(
-    "INSERT INTO tictactoe(player_name, x_or_o, number_of_wins) VALUES(${player_name}, ${x_or_o}, ${number_of_wins}) RETURNING *",
-    { player_name, x_or_o, number_of_wins },
+// increment value of row by 1 - they can play as O one time & X next time
+export const addScore = ({ player_name }) =>
+  db.one(
+    "UPDATE tictactoe SET number_of_wins = number_of_wins + 1 WHERE player_name = ${player_name} RETURNING *",
+    { player_name },
   );
 
 // select from the table top 5 in descending order

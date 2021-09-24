@@ -10,23 +10,33 @@ const clearState = ["", "", "", "", "", "", "", "", "", ""];
 
 // App Component
 function App() {
-  //useState for users
   const [users, setUsers] = React.useState([]);
+
   const loadUsers = async () => {
-    setUsers(await apiClient.getUsers());
+    const result = await apiClient.getUsers();
+    setUsers(result);
+    console.log(result); // test to see if users are working
   };
 
-  // Two States: 1) gameState, 2) isXChange
-  //**  determines the winner?************************************************************???
+  // adding new users
+  const addUser = (user) => {
+    console.log(user);
+    apiClient.addUser(user).then(loadUsers);
+  };
+
+  // work with gameState, whose state will be the winner
+  // whatever user is the winner, you add 1 to their database score
+  // look for users in database, and if they're there, set winCounter to player's winCount, then update winCounter when player wins again
+  // how to increase number of wins?
+
+  // Games States & Function  ********************************************/
+  //**  determines the winner
   const [gameState, updateGameState] = useState(clearState);
-  // changes X to O
   const [isXChange, updateIsXChange] = useState(false);
 
   // click function that an index
   const onUserClicked = (index) => {
-    // takes the array from gameState
     let strings = Array.from(gameState);
-    // ** checks the array from gameState, if it has the index, just return*****************???
     if (strings[index]) return;
     strings[index] = isXChange ? "X" : "O";
     updateIsXChange(!isXChange);
@@ -74,11 +84,15 @@ function App() {
     }
     return null;
   };
+  /***********************************************************************/
 
   return (
     <div className="app-header">
       <p className="heading-text">Tic-Tac-Toe</p>
+      <AddUsers addUser={addUser} />
       <UsersList users={users} />
+
+      {/* */}
       <div className="row jc-center">
         <SquareComponent
           className="b-bottom-right"
@@ -136,29 +150,60 @@ function App() {
   );
 }
 
-const UsersList = ({ users }) => (
-  <>
-    <h2>Users</h2>
-    <table className="center">
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th>Player Name</th>
-          <th>X or O</th>
-          <th>Number of Wins</th>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map(({ id, player_name, x_or_o, number_of_wins }) => (
-          <tr key={id}>
-            <td>{player_name}</td>
-            <td>{x_or_o}</td>
-            <td>{number_of_wins}</td>
+const UsersList = ({ users }) => {
+  return (
+    <>
+      <h2>Users</h2>
+      <table className="center">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>X or O</th>
+            <th># of Wins</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </>
-);
+        </thead>
+        <tbody>
+          {users.map(({ id, player_name, x_or_o, number_of_wins }) => (
+            <tr key={id}>
+              <td>{player_name}</td>
+              <td>{x_or_o}</td>
+              <td>{number_of_wins}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+};
+
+const AddUsers = ({ addUser }) => {
+  const onSubmit = (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const {
+      player_name: { value: player_name },
+      x_or_o: { value: x_or_o },
+    } = form.elements;
+    // test to check if they're getting added
+    console.log(player_name, x_or_o);
+    // calling the func addPlayer & connecting to apiClient, then passing form data
+    addUser({ player_name, x_or_o });
+    form.reset();
+  };
+  return (
+    <form {...{ onSubmit }}>
+      <h3>Please enter your name & letter: X or O</h3>
+      <div className="input-wrapper">
+        <label>
+          <input name="player_name" placeholder="Enter Name" required />
+        </label>
+        <label>
+          <input name="x_or_o" placeholder="X or O" required />
+        </label>
+        <button>Add Player</button>
+      </div>
+    </form>
+  );
+};
 
 export default App;
